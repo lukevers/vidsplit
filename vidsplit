@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Colours
+[[ -t 1 ]] && {
+    c_r=$'\e[1;31m' # RED
+    c_w=$'\e[1;37m' # WHITE
+    c_c=$'\e[0m'    # DISABLES COLOUR
+}
+
+function error {
+    printf '%s %s\n' "${c_r}ERROR:$c_c" "$c_w$1$c_c" >&2
+}
+
+type -P ffmpeg >/dev/null || {
+    error 'The ffmpeg executable was not found in $PATH'
+    exit 1
+}
+
+[[ -n "$1" ]] || {
+    error 'The video to split in to parts must be passed as the first argument.'
+    exit 1
+}
+
+[[ -n "$2" ]] || {
+    error 'The segment time frame must be passed as the second argument.'
+    error '    EXAMPLE: 10:00'
+    exit 1
+}
+
+ffmpeg -i $1 -acodec copy -f segment -vcodec copy -reset_timestamps 1 -map 0 -segment_time $2 output_%d.mp4
